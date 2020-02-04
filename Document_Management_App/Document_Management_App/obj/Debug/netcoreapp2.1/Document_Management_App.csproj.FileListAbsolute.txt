@@ -1,0 +1,14 @@
+E:\Project\Document-Management-App\DocumentManagementApi\Document_Management_App\Document_Management_App\bin\Debug\netcoreapp2.1\Document_Management_App.deps.json
+E:\Project\Document-Management-App\DocumentManagementApi\Document_Management_App\Document_Management_App\bin\Debug\netcoreapp2.1\Document_Management_App.runtimeconfig.json
+E:\Project\Document-Management-App\DocumentManagementApi\Document_Management_App\Document_Management_App\bin\Debug\netcoreapp2.1\Document_Management_App.runtimeconfig.dev.json
+E:\Project\Document-Management-App\DocumentManagementApi\Document_Management_App\Document_Management_App\bin\Debug\netcoreapp2.1\Document_Management_App.dll
+E:\Project\Document-Management-App\DocumentManagementApi\Document_Management_App\Document_Management_App\bin\Debug\netcoreapp2.1\Document_Management_App.pdb
+E:\Project\Document-Management-App\DocumentManagementApi\Document_Management_App\Document_Management_App\obj\Debug\netcoreapp2.1\Document_Management_App.csproj.CoreCompileInputs.cache
+E:\Project\Document-Management-App\DocumentManagementApi\Document_Management_App\Document_Management_App\obj\Debug\netcoreapp2.1\Document_Management_App.RazorAssemblyInfo.cache
+E:\Project\Document-Management-App\DocumentManagementApi\Document_Management_App\Document_Management_App\obj\Debug\netcoreapp2.1\Document_Management_App.RazorAssemblyInfo.cs
+E:\Project\Document-Management-App\DocumentManagementApi\Document_Management_App\Document_Management_App\obj\Debug\netcoreapp2.1\Document_Management_App.AssemblyInfoInputs.cache
+E:\Project\Document-Management-App\DocumentManagementApi\Document_Management_App\Document_Management_App\obj\Debug\netcoreapp2.1\Document_Management_App.AssemblyInfo.cs
+E:\Project\Document-Management-App\DocumentManagementApi\Document_Management_App\Document_Management_App\obj\Debug\netcoreapp2.1\Document_Management_App.RazorTargetAssemblyInfo.cache
+E:\Project\Document-Management-App\DocumentManagementApi\Document_Management_App\Document_Management_App\obj\Debug\netcoreapp2.1\Document_Management_App.dll
+E:\Project\Document-Management-App\DocumentManagementApi\Document_Management_App\Document_Management_App\obj\Debug\netcoreapp2.1\Document_Management_App.pdb
+E:\Project\Document-Management-App\DocumentManagementApi\Document_Management_App\Document_Management_App\obj\Debug\netcoreapp2.1\Document_Management_App.csprojAssemblyReference.cache
