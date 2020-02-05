@@ -29,7 +29,7 @@ namespace Document_Management_App.Controllers
         
         [Route("adddocument")]
 
-        public void Post1(Documents documentdata)
+        public string Post1(Documents documentdata)
         {
            // Documents documents = new Documents();
 
@@ -37,10 +37,26 @@ namespace Document_Management_App.Controllers
 
             adminLogic.Add_Document(documentdata.Document_Name, documentdata.Document_Upload_Date, documentdata.Document_Data, documentdata.Document_Type, documentdata.Document_Privacy, documentdata.Emp_Comp_Id, documentdata.Document_Status);
 
-           // return new string("Added Successfuly");
+           return new string("true");
         }
 
-        
+        [HttpGet]
+        [Route("GetPerticularDocument/{Doctype}")]
+        public string getAppAdminInfo(string Doctype)
+        {
+
+
+            List<Documents> perticular_documents = adminLogic.Get_Perticular_Doc(Doctype);
+            return JsonConvert.SerializeObject(perticular_documents);
+
+        }
+
+        [HttpPut]
+        [Route("DeleteDocument/{docname}/{docid}")]
+        public void markMessegeRead(string docname,string docid)
+        {
+            adminLogic.DeleteDocument(docname,docid);
+        }
 
 
     }
