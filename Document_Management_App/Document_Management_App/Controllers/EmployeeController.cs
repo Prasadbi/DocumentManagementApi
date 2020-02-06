@@ -4,7 +4,7 @@ using Document_Management_App.DataAcessesLayer;
 using Document_Management_App.Model;
 using Document_Management_App.Models;
 using Microsoft.AspNetCore.Mvc;
-
+using Newtonsoft.Json;
 
 namespace Document_Management_App.Controllers
 {
@@ -15,7 +15,7 @@ namespace Document_Management_App.Controllers
         logic Logic = new logic();
         [HttpPost]
         [Route("Postdata")]
-        public void Create(Request request)
+        public void Create(Request request)//for query request
         {
         
                 Logic.AddRequest(request);
@@ -35,12 +35,33 @@ namespace Document_Management_App.Controllers
 
         [HttpPost]
         [Route("Postdata1")]
-        public int Check(Admin admin)
+        public int Check(Admin admin)//for admin login
         {
 
             return Logic.CheckAdmin(admin);
+          
+        }
+
+        [HttpPost]
+        [Route("GetDocument")]
+        public string Documents(Document document)//for  gettting all documents
+        {
+            List<Document> documents = new List<Document>();
+            documents = Logic.GetData(document.Document_Type).ToList();
+            string str = JsonConvert.SerializeObject(documents);
+            return str;
 
         }
+
+        //[HttpPost]
+        //[Route("Postdata2")]
+        //public int Check1(Employee employee)//for admin login
+        //{
+
+        //    return Logic.CheckEmployee(employee);
+
+        //}
+
     }
 }
 
