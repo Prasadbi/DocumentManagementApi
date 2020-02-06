@@ -26,18 +26,20 @@ namespace Document_Management_App.Controllers
 
 
 
-        
+        [HttpPost]
         [Route("adddocument")]
-
-        public string Post1(Documents documentdata)
+        public int Post1(Documents documentdata)
         {
-           // Documents documents = new Documents();
+
+            // Documents documents = new Documents();
 
             //documents = JsonConvert.DeserializeObject<Documents>(documentdta);
 
-            adminLogic.Add_Document(documentdata.Document_Name, documentdata.Document_Upload_Date, documentdata.Document_Data, documentdata.Document_Type, documentdata.Document_Privacy, documentdata.Emp_Comp_Id, documentdata.Document_Status);
+            int message;
 
-           return new string("true");
+            message= adminLogic.Add_Document(documentdata.Document_Name, documentdata.Document_Upload_Date, documentdata.Document_Data, documentdata.Document_Type, documentdata.Document_Privacy, documentdata.Emp_Comp_Id, documentdata.Document_Status);
+
+            return message;
         }
 
         [HttpGet]
@@ -48,6 +50,17 @@ namespace Document_Management_App.Controllers
 
             List<Documents> perticular_documents = adminLogic.Get_Perticular_Doc(Doctype);
             return JsonConvert.SerializeObject(perticular_documents);
+
+        }
+
+        [HttpGet]
+        [Route("GetAllEmplyee")]
+        public string getAllEployee()
+        {
+
+
+            List<Employee> allemplyee = adminLogic.Get_All_Emplyee();
+            return JsonConvert.SerializeObject(allemplyee);
 
         }
 
