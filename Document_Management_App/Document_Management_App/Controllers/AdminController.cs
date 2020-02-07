@@ -64,6 +64,17 @@ namespace Document_Management_App.Controllers
 
         }
 
+        [HttpGet]
+        [Route("GetAllRequests")]
+        public string getAllRequests()
+        {
+
+
+            List<RequestsByEmp> allRequests = adminLogic.Get_RequestsByEmp();
+            return JsonConvert.SerializeObject(allRequests);
+
+        }
+
         [HttpPut]
         [Route("DeleteDocument/{docname}/{docid}")]
         public void markMessegeRead(string docname,string docid)
@@ -71,6 +82,16 @@ namespace Document_Management_App.Controllers
             adminLogic.DeleteDocument(docname,docid);
         }
 
+        [HttpGet]
+        [Route("GetAllSchedules")]
+        public string getAllSchedules()
+        {
+
+            List<ScheduledMeeting> allSchedules = adminLogic.Get_getAllSchedules();
+            return JsonConvert.SerializeObject(allSchedules);
+
+        }
+        
 
     }
 }

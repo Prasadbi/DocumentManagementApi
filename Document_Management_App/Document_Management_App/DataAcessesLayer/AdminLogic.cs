@@ -19,12 +19,14 @@ namespace Document_Management_App.DataAcessesLayer
         public int Add_Document(string DocName, string DocUploadDate, string DocData, string Doctype, string DocPrivacy, string EmpId, string Docstatus)
         {
 
+
+
             int message=1;
             try
             {
                 if (DocPrivacy == "common")
                 {
-                    EmpId = "DEMO";
+                    EmpId = "common";
                 }
 
                 string[] filename;
@@ -38,29 +40,43 @@ namespace Document_Management_App.DataAcessesLayer
 
                 for (int i = 0; i < fileData.Length; i++)
                 {
-                    string path= @"E:/Project/Document-Management-App/DocumentManagementApi/Document_Management_App/Document_Management_App/Documents/";
-
                     // string content = Convert.ToBase64String(File.ReadAllBytes(fileData[i]));
-
+                    //    System.IO.Directory.CreateDirectory(createfolder);
                     // File.WriteAllBytes(@"c:\yourfile", Convert.FromBase64String(yourBase64String));
+                    // var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(file[1]);
+
+                    string path = @"E:/Project/Document-Management-App/DocumentManagementApi/Document_Management_App/Document_Management_App/Documents/";
 
                     var createfolder = Path.Combine(path);
-                    //    System.IO.Directory.CreateDirectory(createfolder);
 
                     string[] file;
 
                     file = fileData[i].Split(',');
-                   // var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(file[1]);
+
+                    string FILEDATA = file[1];
+
+                    int documentcnt = getDocumentcount();
+
+                    string documentcntString = documentcnt.ToString();
+
+
+
+                    string[] filenamesplit = filename[i].Split('.');
+
+                    string filename_Without_Extention = filenamesplit[0];
+                    string file_Extention = filenamesplit[1];
+
+                    string NewFileName= filename_Without_Extention+"_"+ documentcntString+ "."+file_Extention;
 
                     File.SetAttributes(createfolder, FileAttributes.Normal);
 
-                    File.WriteAllBytes(createfolder+"/"+filename[i], Convert.FromBase64String(file[1]));
+                    File.WriteAllBytes(createfolder+"/"+NewFileName, Convert.FromBase64String(FILEDATA));
 
                     SqlCommand cmd = new SqlCommand("Add_Document", con);
 
-                    cmd.Parameters.AddWithValue("@Document_Name", filename[i]);
+                    cmd.Parameters.AddWithValue("@Document_Name", NewFileName);
                     // cmd.Parameters.AddWithValue("@Document_Upload_Date", DocUploadDate);
-                    cmd.Parameters.AddWithValue("@Document_Data", fileData[i]);
+                    //cmd.Parameters.AddWithValue("@Document_Data", fileData[i]);
                     cmd.Parameters.AddWithValue("@Document_Type", Doctype);
                     cmd.Parameters.AddWithValue("@Document_Privacy", DocPrivacy);
                     cmd.Parameters.AddWithValue("@Emp_Comp_Id", EmpId);
@@ -74,6 +90,7 @@ namespace Document_Management_App.DataAcessesLayer
            }
             catch (SqlException e)
             {
+
                 message =0;
               
             }
@@ -89,19 +106,33 @@ namespace Document_Management_App.DataAcessesLayer
             List<Documents> perticular_doc_data = new List<Documents>();
             while (reader.Read())
             {
-                Documents documents = new Documents();
 
-                documents.Document_Id = reader[0].ToString();
-                documents.Document_Name = reader[1].ToString();
-                documents.Document_Upload_Date = reader[2].ToString();
-                documents.Document_Data = reader[3].ToString();
-                documents.Document_Type = reader[4].ToString();
-                documents.Document_Privacy = reader[5].ToString();
-                documents.Emp_Comp_Id = reader[6].ToString();
-                documents.Document_Status = reader[7].ToString();
+                string path = @"E:/Project/Document-Management-App/DocumentManagementApi/Document_Management_App/Document_Management_App/Documents/";
+
+                string filename = reader[1].ToString();
+                string contents;
+
+                foreach (string file in Directory.EnumerateFiles(path, filename))
+                {
+                    Byte[] bytes = File.ReadAllBytes(path+filename);
+                    contents = "data: text / plain; base64,"+Convert.ToBase64String(bytes);
+
+                    Documents documents = new Documents();
+
+                    documents.Document_Id = reader[0].ToString();
+                    documents.Document_Name = reader[1].ToString();
+                    documents.Document_Upload_Date = reader[2].ToString();
+                    documents.Document_Data = contents;
+                    documents.Document_Type = reader[3].ToString();
+                    documents.Document_Privacy = reader[4].ToString();
+                    documents.Emp_Comp_Id = reader[5].ToString();
+                    documents.Document_Status = reader[6].ToString();
 
 
-                perticular_doc_data.Add(documents);
+                    perticular_doc_data.Add(documents);
+
+                }
+          
             }
             reader.Close();
             con.Close();
@@ -147,5 +178,90 @@ namespace Document_Management_App.DataAcessesLayer
             con.Close();
             return emplist;
         }
+
+        public int getDocumentcount()
+        {
+            int documentcount=0;
+            SqlCommand cmd = new SqlCommand("Select max(Document_Id) from tbl_Documents with(nolock)", con);
+            con.Open();
+            SqlDataReader reader = cmd.ExecuteReader();
+            while(reader.Read())
+            {
+                string d = reader[0].ToString();
+                if (d.Equals(""))
+                {
+                    documentcount = 1;
+                }
+                else
+                {
+                    documentcount = Convert.ToInt32(reader[0]);
+                    documentcount = documentcount + 1;
+                }
+                
+            }
+            con.Close();
+            return documentcount;
+        }
+
+        public List<RequestsByEmp> Get_RequestsByEmp()
+        {
+          
+            SqlCommand cmd = new SqlCommand("GetAllRequests", con);
+            con.Open();
+            cmd.CommandType = CommandType.StoredProcedure;
+            SqlDataReader reader = cmd.ExecuteReader();
+            List<RequestsByEmp> request_list = new List<RequestsByEmp>();
+            while (reader.Read())
+            {
+                RequestsByEmp requestsByEmp = new RequestsByEmp();
+
+                requestsByEmp.Request_Id = reader[0].ToString();
+                requestsByEmp.Emp_Comp_Id = reader[1].ToString();
+                requestsByEmp.Emp_First_Name = reader[2].ToString();
+                requestsByEmp.Emp_Last_Name = reader[3].ToString();
+                requestsByEmp.Request_Message = reader[4].ToString();
+                requestsByEmp.Related_Document_Id = reader[5].ToString();
+                requestsByEmp.Document_Name = reader[6].ToString();
+                requestsByEmp.Request_Date = reader[7].ToString();
+                requestsByEmp.Requst_status = reader[8].ToString();
+
+                request_list.Add(requestsByEmp);
+            }
+            reader.Close();
+            con.Close();
+            return request_list;
+        }
+
+        public List<ScheduledMeeting> Get_getAllSchedules()
+        {
+            SqlCommand cmd = new SqlCommand("GetAllScheduledMeetings", con);
+            con.Open();
+            cmd.CommandType = CommandType.StoredProcedure;
+            SqlDataReader reader = cmd.ExecuteReader();
+            List<ScheduledMeeting> scheduledMeetings_list = new List<ScheduledMeeting>();
+            while (reader.Read())
+            {
+                ScheduledMeeting scheduledMeeting = new ScheduledMeeting();
+
+                scheduledMeeting.Meeting_Id = reader[0].ToString();
+                scheduledMeeting.Emp_Comp_Id = reader[1].ToString();
+                scheduledMeeting.Meeting_Date = reader[2].ToString();
+                scheduledMeeting.Meeting_Time = reader[3].ToString();
+                scheduledMeeting.Request_Id = reader[4].ToString();
+                scheduledMeeting.Meeting_Room = reader[5].ToString();
+                scheduledMeeting.Emp_First_Name = reader[6].ToString();
+                scheduledMeeting.Emp_Last_Name = reader[7].ToString();
+                scheduledMeeting.Document_Name = reader[8].ToString();
+
+
+
+
+                scheduledMeetings_list.Add(scheduledMeeting);
+            }
+            reader.Close();
+            con.Close();
+            return scheduledMeetings_list;
+        }
+
     }
 }
