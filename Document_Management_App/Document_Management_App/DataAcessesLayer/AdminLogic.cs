@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -40,59 +41,66 @@ namespace Document_Management_App.DataAcessesLayer
 
                 for (int i = 0; i < fileData.Length; i++)
                 {
-                    // string content = Convert.ToBase64String(File.ReadAllBytes(fileData[i]));
-                    //    System.IO.Directory.CreateDirectory(createfolder);
-                    // File.WriteAllBytes(@"c:\yourfile", Convert.FromBase64String(yourBase64String));
-                    // var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(file[1]);
+                    try
+                    {
+                        // string content = Convert.ToBase64String(File.ReadAllBytes(fileData[i]));
+                        //    System.IO.Directory.CreateDirectory(createfolder);
+                        // File.WriteAllBytes(@"c:\yourfile", Convert.FromBase64String(yourBase64String));
+                        // var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(file[1]);
 
-                    string path = @"E:/Project/Document-Management-App/DocumentManagementApi/Document_Management_App/Document_Management_App/Documents/";
+                        string path = @"E:/Project/Document-Management-App/DocumentManagementApi/Document_Management_App/Document_Management_App/Documents/";
 
-                    var createfolder = Path.Combine(path);
+                        var createfolder = Path.Combine(path);
 
-                    string[] file;
+                        string[] file;
 
-                    file = fileData[i].Split(',');
+                        file = fileData[i].Split(',');
 
-                    string FILEDATA = file[1];
+                        string FILEDATA = file[1];
 
-                    int documentcnt = getDocumentcount();
+                        int documentcnt = getDocumentcount();
 
-                    string documentcntString = documentcnt.ToString();
+                        string documentcntString = documentcnt.ToString();
 
 
 
-                    string[] filenamesplit = filename[i].Split('.');
+                        string[] filenamesplit = filename[i].Split('.');
 
-                    string filename_Without_Extention = filenamesplit[0];
-                    string file_Extention = filenamesplit[1];
+                        string filename_Without_Extention = filenamesplit[0];
+                        string file_Extention = filenamesplit[1];
 
-                    string NewFileName= filename_Without_Extention+"_"+ documentcntString+ "."+file_Extention;
+                        string NewFileName = filename_Without_Extention + "_" + documentcntString + "." + file_Extention;
 
-                    File.SetAttributes(createfolder, FileAttributes.Normal);
+                        File.SetAttributes(createfolder, FileAttributes.Normal);
 
-                    File.WriteAllBytes(createfolder+"/"+NewFileName, Convert.FromBase64String(FILEDATA));
+                        File.WriteAllBytes(createfolder + "/" + NewFileName, Convert.FromBase64String(FILEDATA));
 
-                    SqlCommand cmd = new SqlCommand("Add_Document", con);
+                        SqlCommand cmd = new SqlCommand("Add_Document", con);
 
-                    cmd.Parameters.AddWithValue("@Document_Name", NewFileName);
-                    // cmd.Parameters.AddWithValue("@Document_Upload_Date", DocUploadDate);
-                    //cmd.Parameters.AddWithValue("@Document_Data", fileData[i]);
-                    cmd.Parameters.AddWithValue("@Document_Type", Doctype);
-                    cmd.Parameters.AddWithValue("@Document_Privacy", DocPrivacy);
-                    cmd.Parameters.AddWithValue("@Emp_Comp_Id", EmpId);
-                    cmd.Parameters.AddWithValue("@Document_Status", "1");
+                        cmd.Parameters.AddWithValue("@Document_Name", NewFileName);
+                        // cmd.Parameters.AddWithValue("@Document_Upload_Date", DocUploadDate);
+                        //cmd.Parameters.AddWithValue("@Document_Data", fileData[i]);
+                        cmd.Parameters.AddWithValue("@Document_Type", Doctype);
+                        cmd.Parameters.AddWithValue("@Document_Privacy", DocPrivacy);
+                        cmd.Parameters.AddWithValue("@Emp_Comp_Id", EmpId);
+                        cmd.Parameters.AddWithValue("@Document_Status", "1");
 
-                    con.Open();
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.ExecuteNonQuery();
-                    con.Close();
+                        con.Open();
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.ExecuteNonQuery();
+                        con.Close();
+                    }
+                    catch (Exception e)
+                    {
+                        message = 0;
+                    }
                 }
-           }
+            }
             catch (SqlException e)
             {
 
-                message =0;
-              
+                message = 0;
+
             }
             return message;
        }
@@ -115,7 +123,7 @@ namespace Document_Management_App.DataAcessesLayer
                 foreach (string file in Directory.EnumerateFiles(path, filename))
                 {
                     Byte[] bytes = File.ReadAllBytes(path+filename);
-                    contents = "data: text / plain; base64,"+Convert.ToBase64String(bytes);
+                    contents = "data:text/plain;base64,"+Convert.ToBase64String(bytes);
 
                     Documents documents = new Documents();
 
@@ -261,6 +269,83 @@ namespace Document_Management_App.DataAcessesLayer
             reader.Close();
             con.Close();
             return scheduledMeetings_list;
+        }
+
+        public List<DocumentTypes> Get_AllDocumentType()
+        {
+            SqlCommand cmd = new SqlCommand("GetAllDocument", con);
+            con.Open();
+            cmd.CommandType = CommandType.StoredProcedure;
+            SqlDataReader reader = cmd.ExecuteReader();
+            List<DocumentTypes> DocumentTypes_list = new List<DocumentTypes>();
+            while (reader.Read())
+            {
+                DocumentTypes documentTypes = new DocumentTypes();
+
+                documentTypes.Document_Id = reader[0].ToString();
+                documentTypes.Document_Type_Name = reader[1].ToString();
+
+
+                DocumentTypes_list.Add(documentTypes);
+            }
+            reader.Close();
+            con.Close();
+            return DocumentTypes_list;
+        }
+
+        public int Add_MeetingShedule(ScheduledMeeting scheduledmeeting)
+        {
+            int message = 1;
+
+            try
+            {
+                SqlCommand cmd = new SqlCommand("Add_MeetingSchedule", con);
+
+                cmd.Parameters.AddWithValue("@Emp_Comp_Id", scheduledmeeting.Emp_Comp_Id);
+
+                cmd.Parameters.AddWithValue("@Meeting_Date", scheduledmeeting.Meeting_Date);
+                cmd.Parameters.AddWithValue("@Meeting_Time", scheduledmeeting.Meeting_Time);
+                cmd.Parameters.AddWithValue("@Request_Id", Convert.ToInt32(scheduledmeeting.Request_Id));
+                cmd.Parameters.AddWithValue("@Meeting_Room", scheduledmeeting.Meeting_Room);
+                cmd.Parameters.AddWithValue("@Meeting_Status", "1");
+
+                con.Open();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.ExecuteNonQuery();
+                con.Close();
+            }
+            catch (Exception e)
+            {
+                message = 0;
+            }
+           
+
+            return message;
+            }
+
+        public void UpdateRequestTbl(string requestId)
+        {
+
+            int RequestId = Convert.ToInt32(requestId);
+            SqlCommand cmd = new SqlCommand("UpdateRequestStatus", con);
+            cmd.Parameters.AddWithValue("@Request_Id", RequestId);
+            con.Open();
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.ExecuteNonQuery();
+            con.Close();
+
+        }
+
+
+        public void update_Scheduled_Meeting_Status(string meetinid)
+        {
+            int MeetinId = Convert.ToInt32(meetinid);
+            SqlCommand cmd = new SqlCommand("Update_Scheduled_MeetingStatus", con);
+            cmd.Parameters.AddWithValue("@Meeting_Id", MeetinId);
+            con.Open();
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.ExecuteNonQuery();
+            con.Close();
         }
 
     }

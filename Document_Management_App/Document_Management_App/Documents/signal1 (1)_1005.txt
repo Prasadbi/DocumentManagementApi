@@ -1,0 +1,212 @@
+
+@{
+    ViewData["Title"] = "Signal";
+}
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<head runat="server">
+    @*@import "compass/css3";*@
+
+
+    <script language="javascript">
+     sec
+        var tim;
+        var sec = 18;
+             
+        function f1() {
+            f2();
+        }
+        function f2() {
+           
+            if (parseInt(sec) > 0) {
+               
+                sec = parseInt(sec) - 1;
+                document.getElementById("showtime").innerHTML =  + sec ;
+                tim = setTimeout("f2()", 1000);
+            }
+            else {
+                if (parseInt(sec) == 0) {
+                    sec = parseInt(sec) - 1;
+                    if (parseInt(sec) == 0) {
+                        clearTimeout(tim);
+                        //location.href = "default5.aspx";
+                    }
+                    else {
+                        if (start(sec) == 12) {
+
+                        }
+                        sec = 12;
+                        document.getElementById("showtime").innerHTML = + sec;
+                        tim = setTimeout("f2()", 1000);
+                    }
+                }
+
+            }
+        }
+    </script>
+
+
+
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+
+        #isiqfor {
+            padding: 10px;
+            width: 50px;
+        }
+
+            #isiqfor > div {
+                width: 100px;
+                height: 100px;
+                margin: 5px 0;
+                opacity: 0.1;
+                border: 2px solid groove;
+                border-radius: 50%;
+            }
+
+        .green {
+            background-color: green;
+        }
+
+        .yellow {
+            background-color: yellow;
+        }
+
+        .red {
+            background-color: red;
+        }
+
+        #isiqfor > div.on {
+            opacity: 1;
+            transition: opacity 200ms linear;
+        }
+
+        .control-panel {
+            float: left;
+            padding-top: 30px;
+        }
+
+        .traffic-light {
+            float: left;
+            margin: 30px 0;
+            padding: 12px;
+            width: 150px;
+            height: 350px;
+            background-color: #333;
+            border-radius: 40px;
+            margin-left: 400px;
+            /*padding-left:7px;*/
+        }
+
+        .bulb {
+            margin: 25px auto;
+            width: 150px;
+            height: 150px;
+            background-color: #111;
+            border-radius: 50%;
+            transition: background 500ms;
+        }
+
+        p {
+            text-align: center;
+            font-size: 60px;
+            /*margin-top: 0px;*/
+        }
+    </style>
+</head>
+<h2>Signal</h2>
+<body  onload="f1()">
+    <div class="control-panel">
+        <div class="traffic-light">
+            <div id="isiqfor">
+                <div class="bulb" id="red" style="background-color:red" onload="startTime()" onloadstart="f2()"></div>
+
+                <div class="bulb " id="hide" style="background-color:yellow"></div>
+                <div class="bulb" id="hide" style="background-color:green"></div>
+                @*<div id="txt" style="font-size:60px;color:red"></div>*@
+
+            </div>
+        </div>
+        
+            <table width="100%" align="center">
+                <tr>
+                    <td colspan="2">
+                        <h2></h2>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+
+                        <p id="showtime" style="margin-left:160px"></p>
+                        
+                    </td>
+                </tr>
+                <tr></tr>
+            </table>
+      
+    </div>
+
+</body>
+
+
+
+
+<script>
+
+    var time;
+    var lights = document.querySelectorAll('#isiqfor > div'),
+        timers = [12000, 2000, 12000], counter = 0;
+
+    window.addEventListener('load', start);
+
+    var start = setTimeout(function () {
+        traffic();
+    }, 5000);
+
+    function traffic() {
+        for (i = 0; i < lights.length; i++) {
+            lights[i].classList.remove('on');
+        }
+        lights[counter].classList.add('on');
+        setTimeout(traffic, timers[counter]);
+        counter = (counter + 1) % timers.length;
+    }
+
+    function startTime() {
+        var today = new Date();
+        var s = today.getSeconds();
+
+        s = checkTime(s);
+        document.getElementById('txt').innerHTML =
+            " " + s;
+
+    }
+    function checkTime(i) {
+        if (i < 10) { i = "0" + i };  // add zero in front of numbers < 10
+        return i;
+    }
+
+    //function randRange(data) {
+    //    var newTime = data[Math.floor(data.length * Math.random())];
+    //    var seconds = Math.floor((distance % (data.length * Math.random());
+    //    return 0;
+    //}
+
+    //function toggleSomething() {
+    //    var timeArray = new Array(200);
+    //    //	do stuff
+    //    $("#red").toggleClass("visible");
+    //    //	end stuff
+    //    clearInterval();
+    //    timer = setInterval(toggleSomething, randRange());
+    //}
+    //var timer = setInterval(toggleSomething, 10000);
+    //var countDownDate = new Date("Jan 5, 2021 15:37:25").getTime();
+
+
+
+
+</script>
+

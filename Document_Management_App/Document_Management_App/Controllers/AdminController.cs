@@ -44,7 +44,7 @@ namespace Document_Management_App.Controllers
 
         [HttpGet]
         [Route("GetPerticularDocument/{Doctype}")]
-        public string getAppAdminInfo(string Doctype)
+        public string getPerticularDocument(string Doctype)
         {
 
 
@@ -52,6 +52,8 @@ namespace Document_Management_App.Controllers
             return JsonConvert.SerializeObject(perticular_documents);
 
         }
+
+       
 
         [HttpGet]
         [Route("GetAllEmplyee")]
@@ -91,7 +93,47 @@ namespace Document_Management_App.Controllers
             return JsonConvert.SerializeObject(allSchedules);
 
         }
+
+        [HttpGet]
+        [Route("AllDocumentType")]
+        public string getAllDocumentType()
+        {
+
+
+            List<DocumentTypes> perticular_documents = adminLogic.Get_AllDocumentType();
+            return JsonConvert.SerializeObject(perticular_documents);
+
+        }
+
+        [HttpPost]
+        [Route("addMeeting")]
+        public int AddMeetingSchedule(ScheduledMeeting scheduledmeetings)
+        {
+
+            // Documents documents = new Documents();
+
+            //documents = JsonConvert.DeserializeObject<Documents>(documentdta);
+
+            int message;
+
+            message = adminLogic.Add_MeetingShedule(scheduledmeetings);
+
+            if (message == 1)
+            {
+                adminLogic.UpdateRequestTbl(scheduledmeetings.Request_Id);
+            }
+
+            return message;
+        }
+
         
+
+             [HttpPut]
+        [Route("Update_Scheduled_Meeting_Status/{MeetingId}")]
+        public void Update_Scheduled_Meeting_Status(string MeetingId)
+        {
+            adminLogic.update_Scheduled_Meeting_Status(MeetingId);
+        }
 
     }
 }
