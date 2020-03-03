@@ -7,49 +7,59 @@ using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Protocols;
+using Document_Management_App;
+using Document_Management_App.Controllers;
+using Document_Management_App.DBContext;
+using Microsoft.Extensions.Options;
+using Document_Management_App.Interface;
+using System.Reflection.PortableExecutable;
 
 namespace Document_Management_App.DataAcessesLayer
 {
-    public class AdminLogic
+    public class AdminLogic:AdminInterface
     {
-      
-            SqlConnection con = new SqlConnection(@"Data Source=VS_PRATIKN\Pratik,49172;Initial Catalog=DocumentApp;User ID=pratik;Password=pratikn");
+        private readonly ConnectionStrings connectionStrings;
 
-        public int Add_Document(string DocName, string DocUploadDate, string DocData, string Doctype, string DocPrivacy, string EmpId, string Docstatus)
+
+        public AdminLogic(IOptions<ConnectionStrings> options)
         {
+            connectionStrings = options.Value;
+        }
 
 
+        public int Add_Document(Documents documents)
+        {
+            SqlConnection con = new SqlConnection(connectionStrings.connectionstrings) ;
+          
+         
 
-            int message=1;
+            int message =1;
             try
             {
-                if (DocPrivacy == "common")
+                if (documents.Document_Privacy == "common")
                 {
-                    EmpId = "common";
+                    documents.Emp_Comp_Id = "common";
                 }
 
                 string[] filename;
 
-                filename = JsonConvert.DeserializeObject<string[]>(DocName);
+                filename = JsonConvert.DeserializeObject<string[]>(documents.Document_Name);
 
                 string[] fileData;
 
-                fileData = JsonConvert.DeserializeObject<string[]>(DocData);
+                fileData = JsonConvert.DeserializeObject<string[]>(documents.Document_Data);
 
+  string path = @"E:/Project/Document-Management-App/DocumentManagementApi/Document_Management_App/Document_Management_App/Documents/";
 
                 for (int i = 0; i < fileData.Length; i++)
                 {
                     try
                     {
-                        // string content = Convert.ToBase64String(File.ReadAllBytes(fileData[i]));
-                        //    System.IO.Directory.CreateDirectory(createfolder);
-                        // File.WriteAllBytes(@"c:\yourfile", Convert.FromBase64String(yourBase64String));
-                        // var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(file[1]);
-
-                        string path = @"E:/Project/Document-Management-App/DocumentManagementApi/Document_Management_App/Document_Management_App/Documents/";
-
                         var createfolder = Path.Combine(path);
 
                         string[] file;
@@ -60,7 +70,7 @@ namespace Document_Management_App.DataAcessesLayer
 
                         int documentcnt = getDocumentcount();
 
-                        string documentcntString = documentcnt.ToString();
+                        string documentcntString = Convert.ToString(documentcnt);
 
 
 
@@ -71,26 +81,29 @@ namespace Document_Management_App.DataAcessesLayer
 
                         string NewFileName = filename_Without_Extention + "_" + documentcntString + "." + file_Extention;
 
-                        File.SetAttributes(createfolder, FileAttributes.Normal);
+                       // File.SetAttributes(createfolder, FileAttributes.Normal);
 
                         File.WriteAllBytes(createfolder + "/" + NewFileName, Convert.FromBase64String(FILEDATA));
 
+                       
+
                         SqlCommand cmd = new SqlCommand("Add_Document", con);
+
 
                         cmd.Parameters.AddWithValue("@Document_Name", NewFileName);
                         // cmd.Parameters.AddWithValue("@Document_Upload_Date", DocUploadDate);
                         //cmd.Parameters.AddWithValue("@Document_Data", fileData[i]);
-                        cmd.Parameters.AddWithValue("@Document_Type", Doctype);
-                        cmd.Parameters.AddWithValue("@Document_Privacy", DocPrivacy);
-                        cmd.Parameters.AddWithValue("@Emp_Comp_Id", EmpId);
-                        cmd.Parameters.AddWithValue("@Document_Status", "1");
+                        cmd.Parameters.AddWithValue("@Document_Type", documents.Document_Type);
+                        cmd.Parameters.AddWithValue("@Document_Privacy", documents.Document_Privacy);
+                        cmd.Parameters.AddWithValue("@Emp_Comp_Id", documents.Emp_Comp_Id);
+                        //cmd.Parameters.AddWithValue("@Document_Status", "1");
 
                         con.Open();
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.ExecuteNonQuery();
                         con.Close();
                     }
-                    catch (Exception e)
+                    catch (SqlException e)
                     {
                         message = 0;
                     }
@@ -107,8 +120,13 @@ namespace Document_Management_App.DataAcessesLayer
 
        public List<Documents> Get_Perticular_Doc(string doctype)
         {
-            string status = "1";
-            SqlCommand cmd = new SqlCommand("Select * from tbl_Documents with(nolock) where Document_Type='" +doctype+ "' and Document_Status='"+status+"'", con);
+            SqlConnection con = new SqlConnection(connectionStrings.connectionstrings);
+            //string status = "1";
+            //string privacy = "common";
+            SqlCommand cmd = new SqlCommand("GetPerticularDocument", con);
+            cmd.Parameters.AddWithValue("@Document_Type",doctype);
+
+            cmd.CommandType = CommandType.StoredProcedure;
             con.Open();
             SqlDataReader reader = cmd.ExecuteReader();
             List<Documents> perticular_doc_data = new List<Documents>();
@@ -117,7 +135,7 @@ namespace Document_Management_App.DataAcessesLayer
 
                 string path = @"E:/Project/Document-Management-App/DocumentManagementApi/Document_Management_App/Document_Management_App/Documents/";
 
-                string filename = reader[1].ToString();
+                string filename = Convert.ToString(reader[1]);
                 string contents;
 
                 foreach (string file in Directory.EnumerateFiles(path, filename))
@@ -127,14 +145,14 @@ namespace Document_Management_App.DataAcessesLayer
 
                     Documents documents = new Documents();
 
-                    documents.Document_Id = reader[0].ToString();
-                    documents.Document_Name = reader[1].ToString();
-                    documents.Document_Upload_Date = reader[2].ToString();
+                    documents.Document_Id = Convert.ToString(reader[0]);
+                    documents.Document_Name = Convert.ToString(reader[1]);
+                    documents.Document_Upload_Date = Convert.ToString(reader[2]);
                     documents.Document_Data = contents;
-                    documents.Document_Type = reader[3].ToString();
-                    documents.Document_Privacy = reader[4].ToString();
-                    documents.Emp_Comp_Id = reader[5].ToString();
-                    documents.Document_Status = reader[6].ToString();
+                    documents.Document_Type = Convert.ToString(reader[3]);
+                    documents.Document_Privacy = Convert.ToString(reader[4]);
+                    documents.Emp_Comp_Id = Convert.ToString(reader[5]);
+                    documents.Document_Status = Convert.ToString(reader[6]);
 
 
                     perticular_doc_data.Add(documents);
@@ -150,6 +168,7 @@ namespace Document_Management_App.DataAcessesLayer
 
         public void DeleteDocument(string docid , string docname)
         {
+            SqlConnection con = new SqlConnection(connectionStrings.connectionstrings);
             int newdocid = Convert.ToInt32(docid);
             SqlCommand cmd = new SqlCommand("DeleteDocument", con);
             cmd.Parameters.AddWithValue("@Document_Id", newdocid);
@@ -159,11 +178,17 @@ namespace Document_Management_App.DataAcessesLayer
             cmd.ExecuteNonQuery();
             con.Close();
         }
+   
 
         public List<Employee> Get_All_Emplyee()
         {
-            string status = "1";
-            SqlCommand cmd = new SqlCommand("Select * from tbl_Employee with(nolock) where Emp_Status='" + status + "'", con);
+
+          
+
+            SqlConnection con = new SqlConnection(connectionStrings.connectionstrings);
+            //string status = "1";
+            SqlCommand cmd = new SqlCommand("GetALLEmployee", con);
+            cmd.CommandType = CommandType.StoredProcedure;
             con.Open();
             SqlDataReader reader = cmd.ExecuteReader();
             List<Employee> emplist = new List<Employee>();
@@ -171,13 +196,13 @@ namespace Document_Management_App.DataAcessesLayer
             {
                 Employee employee = new Employee();
 
-                employee.Emp_Id = reader[0].ToString();
-                employee.Emp_Comp_Id = reader[1].ToString();
-                employee.Emp_First_Name = reader[2].ToString();
-                employee.Emp_Last_Name = reader[3].ToString();
-                employee.Emp_Email = reader[4].ToString();
-                employee.Emp_Password = reader[5].ToString();
-                employee.Emp_Status = reader[6].ToString();
+                //  employee.Emp_Id =  Convert.ToString(reader[0]);
+                employee.Emp_Comp_Id = Convert.ToString(reader[0]);
+                employee.Emp_First_Name = Convert.ToString(reader[1]);
+                employee.Emp_Last_Name = Convert.ToString(reader[2]);
+                employee.Emp_Email = Convert.ToString(reader[3]);
+                employee.Emp_Password = Convert.ToString(reader[4]);
+                // employee.Emp_Status =  Convert.ToString(reader[5]);
 
 
                 emplist.Add(employee);
@@ -189,13 +214,16 @@ namespace Document_Management_App.DataAcessesLayer
 
         public int getDocumentcount()
         {
+            SqlConnection con = new SqlConnection(connectionStrings.connectionstrings);
             int documentcount=0;
-            SqlCommand cmd = new SqlCommand("Select max(Document_Id) from tbl_Documents with(nolock)", con);
+            SqlCommand cmd = new SqlCommand("GetDocumentMaxCount", con);
+            cmd.CommandType = CommandType.StoredProcedure;
             con.Open();
             SqlDataReader reader = cmd.ExecuteReader();
             while(reader.Read())
             {
-                string d = reader[0].ToString();
+                string d =Convert.ToString(reader[0]);
+
                 if (d.Equals(""))
                 {
                     documentcount = 1;
@@ -213,7 +241,7 @@ namespace Document_Management_App.DataAcessesLayer
 
         public List<RequestsByEmp> Get_RequestsByEmp()
         {
-          
+            SqlConnection con = new SqlConnection(connectionStrings.connectionstrings);
             SqlCommand cmd = new SqlCommand("GetAllRequests", con);
             con.Open();
             cmd.CommandType = CommandType.StoredProcedure;
@@ -223,17 +251,17 @@ namespace Document_Management_App.DataAcessesLayer
             {
                 RequestsByEmp requestsByEmp = new RequestsByEmp();
 
-                requestsByEmp.Request_Id = reader[0].ToString();
-                requestsByEmp.Emp_Comp_Id = reader[1].ToString();
-                requestsByEmp.Emp_First_Name = reader[2].ToString();
-                requestsByEmp.Emp_Last_Name = reader[3].ToString();
-                requestsByEmp.Request_Message = reader[4].ToString();
-                requestsByEmp.Related_Document_Id = reader[5].ToString();
-                requestsByEmp.Document_Name = reader[6].ToString();
-                requestsByEmp.Request_Date = reader[7].ToString();
-                requestsByEmp.Requst_status = reader[8].ToString();
-
+                requestsByEmp.Request_Id = Convert.ToString(reader[0]);
+                requestsByEmp.Emp_Comp_Id = Convert.ToString(reader[1]);
+                requestsByEmp.Emp_First_Name = Convert.ToString(reader[2]);
+                requestsByEmp.Emp_Last_Name = Convert.ToString(reader[3]);
+                requestsByEmp.Request_Message = Convert.ToString(reader[4]);
+                requestsByEmp.Related_Document_Id = Convert.ToString(reader[5]);
+                requestsByEmp.Document_Name = Convert.ToString(reader[6]);
+                requestsByEmp.Request_Date = Convert.ToString(reader[7]);
+                requestsByEmp.Requst_status =  Convert.ToString(reader[8]);
                 request_list.Add(requestsByEmp);
+
             }
             reader.Close();
             con.Close();
@@ -242,6 +270,7 @@ namespace Document_Management_App.DataAcessesLayer
 
         public List<ScheduledMeeting> Get_getAllSchedules()
         {
+            SqlConnection con = new SqlConnection(connectionStrings.connectionstrings);
             SqlCommand cmd = new SqlCommand("GetAllScheduledMeetings", con);
             con.Open();
             cmd.CommandType = CommandType.StoredProcedure;
@@ -251,18 +280,19 @@ namespace Document_Management_App.DataAcessesLayer
             {
                 ScheduledMeeting scheduledMeeting = new ScheduledMeeting();
 
-                scheduledMeeting.Meeting_Id = reader[0].ToString();
-                scheduledMeeting.Emp_Comp_Id = reader[1].ToString();
-                scheduledMeeting.Meeting_Date = reader[2].ToString();
-                scheduledMeeting.Meeting_Time = reader[3].ToString();
-                scheduledMeeting.Request_Id = reader[4].ToString();
-                scheduledMeeting.Meeting_Room = reader[5].ToString();
-                scheduledMeeting.Emp_First_Name = reader[6].ToString();
-                scheduledMeeting.Emp_Last_Name = reader[7].ToString();
-                scheduledMeeting.Document_Name = reader[8].ToString();
+                DateTime Time = DateTime.ParseExact(Convert.ToString(reader[3]), "HH:mm",CultureInfo.InvariantCulture);
 
+                string FormatedMeetingTime = Time.ToString("hh:mm tt");
 
-
+                scheduledMeeting.Meeting_Id = Convert.ToString(reader[0]);
+                scheduledMeeting.Emp_Comp_Id = Convert.ToString(reader[1]);
+                scheduledMeeting.Meeting_Date = Convert.ToString(reader[2]);
+                scheduledMeeting.Meeting_Time = FormatedMeetingTime;
+                scheduledMeeting.Request_Id = Convert.ToString(reader[4]);
+                scheduledMeeting.Meeting_Room = Convert.ToString(reader[5]);
+                scheduledMeeting.Emp_First_Name = Convert.ToString(reader[6]);
+                scheduledMeeting.Emp_Last_Name = Convert.ToString(reader[7]);
+                scheduledMeeting.Document_Name = Convert.ToString(reader[8]);
 
                 scheduledMeetings_list.Add(scheduledMeeting);
             }
@@ -273,6 +303,7 @@ namespace Document_Management_App.DataAcessesLayer
 
         public List<DocumentTypes> Get_AllDocumentType()
         {
+            SqlConnection con = new SqlConnection(connectionStrings.connectionstrings);
             SqlCommand cmd = new SqlCommand("GetAllDocument", con);
             con.Open();
             cmd.CommandType = CommandType.StoredProcedure;
@@ -282,8 +313,8 @@ namespace Document_Management_App.DataAcessesLayer
             {
                 DocumentTypes documentTypes = new DocumentTypes();
 
-                documentTypes.Document_Id = reader[0].ToString();
-                documentTypes.Document_Type_Name = reader[1].ToString();
+                documentTypes.Document_Id = Convert.ToString(reader[0]);
+                documentTypes.Document_Type_Name = Convert.ToString(reader[1]);
 
 
                 DocumentTypes_list.Add(documentTypes);
@@ -295,6 +326,7 @@ namespace Document_Management_App.DataAcessesLayer
 
         public int Add_MeetingShedule(ScheduledMeeting scheduledmeeting)
         {
+            SqlConnection con = new SqlConnection(connectionStrings.connectionstrings);
             int message = 1;
 
             try
@@ -307,7 +339,7 @@ namespace Document_Management_App.DataAcessesLayer
                 cmd.Parameters.AddWithValue("@Meeting_Time", scheduledmeeting.Meeting_Time);
                 cmd.Parameters.AddWithValue("@Request_Id", Convert.ToInt32(scheduledmeeting.Request_Id));
                 cmd.Parameters.AddWithValue("@Meeting_Room", scheduledmeeting.Meeting_Room);
-                cmd.Parameters.AddWithValue("@Meeting_Status", "1");
+               // cmd.Parameters.AddWithValue("@Meeting_Status", "1");
 
                 con.Open();
                 cmd.CommandType = CommandType.StoredProcedure;
@@ -325,7 +357,7 @@ namespace Document_Management_App.DataAcessesLayer
 
         public void UpdateRequestTbl(string requestId)
         {
-
+            SqlConnection con = new SqlConnection(connectionStrings.connectionstrings);
             int RequestId = Convert.ToInt32(requestId);
             SqlCommand cmd = new SqlCommand("UpdateRequestStatus", con);
             cmd.Parameters.AddWithValue("@Request_Id", RequestId);
@@ -339,6 +371,7 @@ namespace Document_Management_App.DataAcessesLayer
 
         public void update_Scheduled_Meeting_Status(string meetinid)
         {
+            SqlConnection con = new SqlConnection(connectionStrings.connectionstrings);
             int MeetinId = Convert.ToInt32(meetinid);
             SqlCommand cmd = new SqlCommand("Update_Scheduled_MeetingStatus", con);
             cmd.Parameters.AddWithValue("@Meeting_Id", MeetinId);
@@ -346,6 +379,104 @@ namespace Document_Management_App.DataAcessesLayer
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.ExecuteNonQuery();
             con.Close();
+        }
+
+        public void SendMail(string requestId)
+        {
+            SqlConnection con = new SqlConnection(connectionStrings.connectionstrings);
+            string name ="";
+            string Employee_email = "";
+            string MeetingDate = "";
+            string MeetingTime = "";
+            string MeetingRoom = "";
+            string DocumentName = "";
+
+            int RequestId = Convert.ToInt32(requestId);
+            SqlCommand cmd = new SqlCommand("SendMailFromAdmin", con);
+            cmd.Parameters.AddWithValue("@Request_Id", RequestId);
+            con.Open();
+            cmd.CommandType = CommandType.StoredProcedure;
+            SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    name = Convert.ToString(reader[0]) + " " + Convert.ToString(reader[1]);
+                    Employee_email = Convert.ToString(reader[2]);
+                    MeetingDate = Convert.ToString(reader[3]);
+                    MeetingTime = Convert.ToString(reader[4]);
+                    MeetingRoom = Convert.ToString(reader[5]);
+                    DocumentName = Convert.ToString(reader[6]);
+
+                }
+
+            con.Close();
+
+                if(Employee_email!="" || MeetingDate!="" || MeetingTime!="" ||DocumentName!="")
+                {
+
+                DateTime Time = DateTime.ParseExact(MeetingTime, "HH:mm",
+                                      CultureInfo.InvariantCulture);
+
+                
+              
+
+                string FormatedMeetingTime = Time.ToString("hh:mm tt");
+
+                string subject = "Discussion About Document Query";
+
+                    string body = "Hi, "+name+",<br>We arrenge the meeting with you for disscuss about " + DocumentName + " " +
+                                  " document.<br> Meeting date is: " + MeetingDate + ", <br> Time is :" + FormatedMeetingTime + " and Meeting Room Is: " + MeetingRoom + "<br><i>Thank You</i>";
+
+
+                    string FromMail = "amarjadhav738779@gmail.com";
+                    // string emailTo = "reciever@reckonbits.com.pk";
+                    MailMessage mail = new MailMessage();
+                      mail.IsBodyHtml = true;
+
+                SmtpClient SmtpServer = new SmtpClient("smtp.gmail.com", 587);
+                    mail.From = new MailAddress(FromMail);
+
+                  System.Net.NetworkCredential Credentials = new System.Net.NetworkCredential("amarjadhav738779@gmail.com", "Amar@9552065205");
+
+                     mail.To.Add(Employee_email);
+                    mail.Subject = subject;
+                    mail.Body = body;     
+                    SmtpServer.Credentials =new System.Net.NetworkCredential("amarjadhav738779@gmail.com","Amar@9552065205");
+                    SmtpServer.EnableSsl = true;
+                    SmtpServer.Port = 587;
+                    SmtpServer.DeliveryMethod = SmtpDeliveryMethod.Network;
+                  // SmtpServer.UseDefaultCredentials = true;
+                    SmtpServer.Send(mail);
+                }
+        }
+
+        public int AddNewEmployee(Employee employee)
+        {
+            int flag = 0;
+
+            SqlConnection con = new SqlConnection(connectionStrings.connectionstrings);
+            try
+            {
+                SqlCommand cmd = new SqlCommand("Add_New_Employee", con);
+
+                cmd.Parameters.AddWithValue("@Emp_Comp_Id", employee.Emp_Comp_Id);
+                cmd.Parameters.AddWithValue("@Emp_First_Name", employee.Emp_First_Name);
+                cmd.Parameters.AddWithValue("@Emp_Last_Name",employee.Emp_Last_Name);
+                cmd.Parameters.AddWithValue("@Emp_Email", employee.Emp_Email);
+                cmd.Parameters.AddWithValue("@Emp_Password",employee.Emp_Password );
+              
+                // cmd.Parameters.AddWithValue("@Meeting_Status", "1");
+
+                con.Open();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.ExecuteNonQuery();
+                con.Close();
+                flag = 1;
+            }
+            catch (Exception e)
+            {
+                flag = 0;
+            }
+            return flag;
         }
 
     }

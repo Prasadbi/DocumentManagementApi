@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Document_Management_App.DataAcessesLayer;
+using Document_Management_App.Interface;
 using Document_Management_App.Models;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 
 namespace Document_Management_App.Controllers
@@ -14,30 +16,24 @@ namespace Document_Management_App.Controllers
     [Route("api/[controller]")]
     [ApiController]
   
+
     public class AdminController : ControllerBase
     {
-        AdminLogic adminLogic = new AdminLogic();
 
-        [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
+        public AdminController(AdminInterface dbOps)
         {
-            return new string[] { "value1", "value2" };
+            DBRecords = dbOps;
         }
-
+        public AdminInterface DBRecords { get; set; }
 
 
         [HttpPost]
         [Route("adddocument")]
-        public int Post1(Documents documentdata)
+        public int AddNewDocument(Documents documentdata)
         {
-
-            // Documents documents = new Documents();
-
-            //documents = JsonConvert.DeserializeObject<Documents>(documentdta);
-
             int message;
 
-            message= adminLogic.Add_Document(documentdata.Document_Name, documentdata.Document_Upload_Date, documentdata.Document_Data, documentdata.Document_Type, documentdata.Document_Privacy, documentdata.Emp_Comp_Id, documentdata.Document_Status);
+            message= DBRecords.Add_Document(documentdata);
 
             return message;
         }
@@ -46,9 +42,9 @@ namespace Document_Management_App.Controllers
         [Route("GetPerticularDocument/{Doctype}")]
         public string getPerticularDocument(string Doctype)
         {
+          
 
-
-            List<Documents> perticular_documents = adminLogic.Get_Perticular_Doc(Doctype);
+            List<Documents> perticular_documents = DBRecords.Get_Perticular_Doc(Doctype);
             return JsonConvert.SerializeObject(perticular_documents);
 
         }
@@ -59,9 +55,8 @@ namespace Document_Management_App.Controllers
         [Route("GetAllEmplyee")]
         public string getAllEployee()
         {
-
-
-            List<Employee> allemplyee = adminLogic.Get_All_Emplyee();
+           
+            List<Employee> allemplyee = DBRecords.Get_All_Emplyee();
             return JsonConvert.SerializeObject(allemplyee);
 
         }
@@ -70,9 +65,8 @@ namespace Document_Management_App.Controllers
         [Route("GetAllRequests")]
         public string getAllRequests()
         {
-
-
-            List<RequestsByEmp> allRequests = adminLogic.Get_RequestsByEmp();
+           
+            List<RequestsByEmp> allRequests = DBRecords.Get_RequestsByEmp();
             return JsonConvert.SerializeObject(allRequests);
 
         }
@@ -81,15 +75,16 @@ namespace Document_Management_App.Controllers
         [Route("DeleteDocument/{docname}/{docid}")]
         public void markMessegeRead(string docname,string docid)
         {
-            adminLogic.DeleteDocument(docname,docid);
+
+            DBRecords.DeleteDocument(docname,docid);
         }
 
         [HttpGet]
         [Route("GetAllSchedules")]
         public string getAllSchedules()
         {
-
-            List<ScheduledMeeting> allSchedules = adminLogic.Get_getAllSchedules();
+           
+            List<ScheduledMeeting> allSchedules = DBRecords.Get_getAllSchedules();
             return JsonConvert.SerializeObject(allSchedules);
 
         }
@@ -98,9 +93,8 @@ namespace Document_Management_App.Controllers
         [Route("AllDocumentType")]
         public string getAllDocumentType()
         {
-
-
-            List<DocumentTypes> perticular_documents = adminLogic.Get_AllDocumentType();
+           
+            List<DocumentTypes> perticular_documents = DBRecords.Get_AllDocumentType();
             return JsonConvert.SerializeObject(perticular_documents);
 
         }
@@ -109,30 +103,40 @@ namespace Document_Management_App.Controllers
         [Route("addMeeting")]
         public int AddMeetingSchedule(ScheduledMeeting scheduledmeetings)
         {
-
+           
             // Documents documents = new Documents();
 
             //documents = JsonConvert.DeserializeObject<Documents>(documentdta);
 
             int message;
 
-            message = adminLogic.Add_MeetingShedule(scheduledmeetings);
+            message = DBRecords.Add_MeetingShedule(scheduledmeetings);
 
             if (message == 1)
             {
-                adminLogic.UpdateRequestTbl(scheduledmeetings.Request_Id);
+                DBRecords.UpdateRequestTbl(scheduledmeetings.Request_Id);
+
+                DBRecords.SendMail(scheduledmeetings.Request_Id);
+
+
             }
 
             return message;
         }
 
-        
-
-             [HttpPut]
+        [HttpPut]
         [Route("Update_Scheduled_Meeting_Status/{MeetingId}")]
         public void Update_Scheduled_Meeting_Status(string MeetingId)
         {
-            adminLogic.update_Scheduled_Meeting_Status(MeetingId);
+
+            DBRecords.update_Scheduled_Meeting_Status(MeetingId);
+        }
+
+        [HttpPost]
+        [Route("addNewEmployee")]
+        public int addNewEmployee(Employee employee)
+        {
+            return DBRecords.AddNewEmployee(employee);
         }
 
     }
