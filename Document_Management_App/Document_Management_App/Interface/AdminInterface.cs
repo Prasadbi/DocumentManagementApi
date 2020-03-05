@@ -22,7 +22,9 @@ namespace Document_Management_App.Interface
             void update_Scheduled_Meeting_Status(string meetinid);
             void SendMail(string requestId);
             int AddNewEmployee(Employee employee);
-      
+          void ShareDocument(ShareDocument sharedocument);
+
+
 
         }
 }

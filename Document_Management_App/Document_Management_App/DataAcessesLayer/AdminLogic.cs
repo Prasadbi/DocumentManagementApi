@@ -479,5 +479,35 @@ namespace Document_Management_App.DataAcessesLayer
             return flag;
         }
 
+       public void ShareDocument(ShareDocument sharedocument)
+        {
+            string[] Emp_Comp_Id;
+
+            Emp_Comp_Id = JsonConvert.DeserializeObject<string[]>(sharedocument.Emp_Comp_Id);
+
+            for (int i = 0; i < Emp_Comp_Id.Length; i++)
+            {
+                int docid = Convert.ToInt32(sharedocument.Document_Id);
+
+                SqlConnection con = new SqlConnection(connectionStrings.connectionstrings);
+              
+                    SqlCommand cmd = new SqlCommand("ShareDocument", con);
+                
+                    cmd.Parameters.AddWithValue("@Document_Id", docid);
+                    cmd.Parameters.AddWithValue("@Emp_Comp_Id", Emp_Comp_Id[i]);
+                   
+
+                    // cmd.Parameters.AddWithValue("@Meeting_Status", "1");
+
+                    con.Open();
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.ExecuteNonQuery();
+                    con.Close();
+              
+            }
+
+
+        }
+
     }
 }

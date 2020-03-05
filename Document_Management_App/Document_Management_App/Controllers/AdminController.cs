@@ -139,5 +139,13 @@ namespace Document_Management_App.Controllers
             return DBRecords.AddNewEmployee(employee);
         }
 
+        [HttpPost]
+        [Route("ShareDocument")]
+        public void ShareDocument(ShareDocument sharedocument)
+        {
+            DBRecords.ShareDocument(sharedocument);
+        }
+
+        
     }
 }

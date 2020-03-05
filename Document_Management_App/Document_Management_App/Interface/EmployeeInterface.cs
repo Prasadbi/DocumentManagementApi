@@ -11,7 +11,7 @@ namespace Document_Management_App.Interface
         public interface EmployeeInterface
         {
             void AddRequest(Request request);
-            List<perticularDocument> perticularDocument(string document);
+            List<perticularDocument> perticularDocument(string document,string Emp_Comp_Id);
             string CheckAdmin(Admin admin);
             List<AllDocument> AllDocuments();
             List<AllDocument> GetALLDocumentForRequest(string empid);

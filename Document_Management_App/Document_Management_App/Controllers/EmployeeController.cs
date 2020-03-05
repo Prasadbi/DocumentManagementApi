@@ -45,7 +45,7 @@ namespace Document_Management_App.Controllers
         public string Documents(perticularDocument document)//for gettting all perticular documents documents
         {
             List<perticularDocument> documents = new List<perticularDocument>();
-            documents = DBRecords.perticularDocument(document.Document_Type).ToList();
+            documents = DBRecords.perticularDocument(document.Document_Type,document.Emp_Comp_Id).ToList();
             string str = JsonConvert.SerializeObject(documents);
             return str;
 

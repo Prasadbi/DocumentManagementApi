@@ -115,7 +115,7 @@ namespace Document_Management_App.DataAcessesLayer
 
 
         }
-        public List<perticularDocument> perticularDocument(string document)
+        public List<perticularDocument> perticularDocument(string document,string empid)
         {
 
             string ConnectionPath = connectionStrings.connectionstrings;
@@ -124,9 +124,10 @@ namespace Document_Management_App.DataAcessesLayer
 
                 // string status = "1";
                 // string privcy = "common";
-                SqlCommand cmd = new SqlCommand("GetPerticularDocument", con);
+                SqlCommand cmd = new SqlCommand("GetPerticularDocumentNew", con);
                 // SqlCommand cmd = new SqlCommand("Select * from tbl_Documents with(nolock) where Document_Type='" + document + "' and Document_Status='" + status + "' and Document_Privacy='"+privcy+"'", con);
                 cmd.Parameters.AddWithValue("@Document_Type", document);
+                cmd.Parameters.AddWithValue("@Emp_Comp_Id", empid);
                 cmd.CommandType = CommandType.StoredProcedure;
                 con.Open();
                 SqlDataReader rd = cmd.ExecuteReader();
