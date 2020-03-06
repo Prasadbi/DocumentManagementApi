@@ -23,8 +23,7 @@ namespace Document_Management_App.Interface
             void SendMail(string requestId);
             int AddNewEmployee(Employee employee);
           void ShareDocument(ShareDocument sharedocument);
-
-
+        List<ShareDocEmpList> getDocShareedListOfEmp(string DocId);
 
         }
 }

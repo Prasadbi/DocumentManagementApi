@@ -15,6 +15,7 @@ namespace Document_Management_App.Models
         public string Document_Privacy { get; set; }
         public string Emp_Comp_Id { get; set; }
         public string Document_Status { get; set; }
-       
+        public string Document_ShareCount { get; set; }
+
     }
 }

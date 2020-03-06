@@ -8,6 +8,7 @@ namespace Document_Management_App.Models
     public class ShareDocument
     {
         public string Document_Id { get; set; }
-        public string Emp_Comp_Id { get; set; }
+        public string Emp_Comp_Id_Share { get; set; }
+        public string Emp_Comp_Id_UnShare { get; set; }
     }
 }

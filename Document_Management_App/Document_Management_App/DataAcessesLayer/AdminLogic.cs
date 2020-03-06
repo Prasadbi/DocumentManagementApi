@@ -132,6 +132,7 @@ namespace Document_Management_App.DataAcessesLayer
             List<Documents> perticular_doc_data = new List<Documents>();
             while (reader.Read())
             {
+                List<ShareDocEmpList> list = getDocShareedListOfEmp(Convert.ToString(reader[0]));
 
                 string path = @"E:/Project/Document-Management-App/DocumentManagementApi/Document_Management_App/Document_Management_App/Documents/";
 
@@ -153,12 +154,16 @@ namespace Document_Management_App.DataAcessesLayer
                     documents.Document_Privacy = Convert.ToString(reader[4]);
                     documents.Emp_Comp_Id = Convert.ToString(reader[5]);
                     documents.Document_Status = Convert.ToString(reader[6]);
+                    documents.Document_ShareCount = Convert.ToString(list.Count);
 
 
                     perticular_doc_data.Add(documents);
 
                 }
-          
+
+              
+
+
             }
             reader.Close();
             con.Close();
@@ -481,11 +486,12 @@ namespace Document_Management_App.DataAcessesLayer
 
        public void ShareDocument(ShareDocument sharedocument)
         {
-            string[] Emp_Comp_Id;
+            string[] Emp_Comp_Id_Share;
 
-            Emp_Comp_Id = JsonConvert.DeserializeObject<string[]>(sharedocument.Emp_Comp_Id);
+            Emp_Comp_Id_Share = JsonConvert.DeserializeObject<string[]>(sharedocument.Emp_Comp_Id_Share);
 
-            for (int i = 0; i < Emp_Comp_Id.Length; i++)
+
+            for (int i = 0; i < Emp_Comp_Id_Share.Length; i++)
             {
                 int docid = Convert.ToInt32(sharedocument.Document_Id);
 
@@ -494,8 +500,7 @@ namespace Document_Management_App.DataAcessesLayer
                     SqlCommand cmd = new SqlCommand("ShareDocument", con);
                 
                     cmd.Parameters.AddWithValue("@Document_Id", docid);
-                    cmd.Parameters.AddWithValue("@Emp_Comp_Id", Emp_Comp_Id[i]);
-                   
+                    cmd.Parameters.AddWithValue("@Emp_Comp_Id", Emp_Comp_Id_Share[i]);
 
                     // cmd.Parameters.AddWithValue("@Meeting_Status", "1");
 
@@ -507,6 +512,64 @@ namespace Document_Management_App.DataAcessesLayer
             }
 
 
+            string[] Emp_Comp_Id_UnShare;
+
+            Emp_Comp_Id_UnShare = JsonConvert.DeserializeObject<string[]>(sharedocument.Emp_Comp_Id_UnShare);
+
+
+            for (int i = 0; i < Emp_Comp_Id_UnShare.Length; i++)
+            {
+                int docid = Convert.ToInt32(sharedocument.Document_Id);
+
+                SqlConnection con = new SqlConnection(connectionStrings.connectionstrings);
+
+                SqlCommand cmd = new SqlCommand("UnShareDocument", con);
+
+                cmd.Parameters.AddWithValue("@Document_Id", docid);
+                cmd.Parameters.AddWithValue("@Emp_Comp_Id", Emp_Comp_Id_UnShare[i]);
+
+                // cmd.Parameters.AddWithValue("@Meeting_Status", "1");
+
+                con.Open();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.ExecuteNonQuery();
+                con.Close();
+
+            }
+
+
+        }
+
+        public List<ShareDocEmpList> getDocShareedListOfEmp(string DocId)
+        {
+            SqlConnection con = new SqlConnection(connectionStrings.connectionstrings);
+            SqlCommand cmd = new SqlCommand("GetDocSharedEmpList", con);
+            con.Open();
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@Document_Id", DocId);
+            SqlDataReader reader = cmd.ExecuteReader();
+
+            List<ShareDocEmpList> docEmpListData = new List<ShareDocEmpList>();
+
+            while (reader.Read())
+            {
+                ShareDocEmpList docEmpList = new ShareDocEmpList();
+                docEmpList.Emp_First_Name = Convert.ToString(reader[0]);
+                docEmpList.Emp_Last_Name = Convert.ToString(reader[1]);
+                docEmpList.Document_ID = Convert.ToString(reader[2]);
+                docEmpList.Document_Name = Convert.ToString(reader[3]);
+                docEmpList.Document_Upload_Date = Convert.ToString(reader[4]);
+                docEmpList.Document_Type = Convert.ToString(reader[5]);
+                docEmpList.Document_Privacy = Convert.ToString(reader[6]);
+                docEmpList.Emp_Comp_Id = Convert.ToString(reader[7]);
+                docEmpList.Document_Status = Convert.ToString(reader[8]);
+
+                docEmpListData.Add(docEmpList);
+
+            }
+            reader.Close();
+            con.Close();
+            return docEmpListData;
         }
 
     }

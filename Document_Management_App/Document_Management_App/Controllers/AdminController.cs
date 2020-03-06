@@ -145,7 +145,14 @@ namespace Document_Management_App.Controllers
         {
             DBRecords.ShareDocument(sharedocument);
         }
+        [HttpGet]
+        [Route("getDocShareedListOfEmp/{Document_Id}")]
+       public string getDocShareedListOfEmp(string Document_Id)
+        {
+           
+            return JsonConvert.SerializeObject(DBRecords.getDocShareedListOfEmp(Document_Id));
+        }
 
-        
+
     }
 }
