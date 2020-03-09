@@ -88,8 +88,21 @@ namespace Document_Management_App.Controllers
 
             DBRecords.LogOutEmployee(Employeedata);
         }
+        [HttpPost]
+        [Route("UploadEmployeeProfile")]
+        public void UploadEmployeeProfile(Employee employee)
+        {
+            DBRecords.UploadEmployeeProfile(employee);
+        }
 
-        
+        [HttpGet]
+        [Route("GetUserProfile/{Empid}")]
+        public string GetUserProfile(string Empid)
+        {
+
+           
+            return JsonConvert.SerializeObject(DBRecords.GetUserProfile(Empid));
+        }
     }
 }
 

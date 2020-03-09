@@ -115,7 +115,7 @@ namespace Document_Management_App.DataAcessesLayer
 
 
         }
-        public List<perticularDocument> perticularDocument(string document,string empid)
+        public List<perticularDocument> perticularDocument(string document, string empid)
         {
 
             string ConnectionPath = connectionStrings.connectionstrings;
@@ -328,20 +328,20 @@ namespace Document_Management_App.DataAcessesLayer
             }
         }
 
-      public void  AddLoginInfo(string Emp_Comp_Id)
+        public void AddLoginInfo(string Emp_Comp_Id)
         {
             SqlConnection con = new SqlConnection(connectionStrings.connectionstrings1);
             try
             {
-                SqlCommand cmd = new SqlCommand("insert into tbl_DocumentApp_LoginInfo(Emp_Comp_Id,Login_Date_Time) values('"+Emp_Comp_Id+"',getDate())", con);
-                con.Open();  
+                SqlCommand cmd = new SqlCommand("insert into tbl_DocumentApp_LoginInfo(Emp_Comp_Id,Login_Date_Time) values('" + Emp_Comp_Id + "',getDate())", con);
+                con.Open();
                 cmd.ExecuteNonQuery();
                 con.Close();
-               
+
             }
             catch (Exception e)
             {
-              
+
             }
         }
 
@@ -351,7 +351,7 @@ namespace Document_Management_App.DataAcessesLayer
             SqlConnection con = new SqlConnection(connectionStrings.connectionstrings1);
             try
             {
-                SqlCommand cmd = new SqlCommand("Update tbl_DocumentApp_LoginInfo set Login_Status=0 where Emp_Comp_Id='"+Emp_Comp_Id+"'", con);
+                SqlCommand cmd = new SqlCommand("Update tbl_DocumentApp_LoginInfo set Login_Status=0 where Emp_Comp_Id='" + Emp_Comp_Id + "'", con);
                 con.Open();
                 cmd.ExecuteNonQuery();
                 con.Close();
@@ -359,6 +359,81 @@ namespace Document_Management_App.DataAcessesLayer
             catch (Exception e)
             {
 
+            }
+        }
+
+        public void UploadEmployeeProfile(Employee employee)
+        {
+            if ( employee.Employee_Image!=null)
+            {
+                string ConnectionPath = connectionStrings.connectionstrings;
+                string profile_Image_Name = employee.Emp_Comp_Id + ".jpg";
+                SqlConnection con = new SqlConnection(ConnectionPath);
+                SqlCommand cmd = new SqlCommand("Add_User_Profile", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Profile_Image", profile_Image_Name);
+                cmd.Parameters.AddWithValue("@Emp_Comp_Id", employee.Emp_Comp_Id);
+                con.Open();
+                cmd.ExecuteNonQuery();
+                con.Close();
+
+
+                string path = @"E:/Project/Document-Management-App/DocumentManagementApi/Document_Management_App/Document_Management_App/UserProFile_Images/";
+
+
+                var createfolder = Path.Combine(path);
+
+                string[] file;
+
+                file = employee.Employee_Image.Split(',');
+
+                string FILEDATA = file[1];
+
+
+                File.WriteAllBytes(createfolder + "/" + profile_Image_Name, Convert.FromBase64String(FILEDATA));
+            }
+
+            
+
+        }
+
+
+        public List<Employee> GetUserProfile(string Empid)
+        {
+            string ConnectionPath = connectionStrings.connectionstrings;
+            using (SqlConnection con = new SqlConnection(ConnectionPath))
+            {
+
+                SqlCommand cmd = new SqlCommand("select * from tbl_UserProfile with(nolock) where Emp_Comp_Id='"+ Empid+"'", con);
+
+                con.Open();
+                SqlDataReader rd = cmd.ExecuteReader();
+                List<Employee> EmployeeProfilePic = new List<Employee>();
+
+                string path = @"E:/Project/Document-Management-App/DocumentManagementApi/Document_Management_App/Document_Management_App/UserProFile_Images/";
+
+                while (rd.Read())
+                {
+
+                    string filename = Convert.ToString(rd[2]);
+                    string contents;
+
+                    foreach (string file in Directory.EnumerateFiles(path, filename))
+                    {
+                        Byte[] bytes = File.ReadAllBytes(path + filename);
+                        contents = "data: text / plain; base64," + Convert.ToBase64String(bytes);
+
+                        Employee e = new Employee();
+                        e.Emp_Comp_Id = Convert.ToString(rd[1]);
+                        e.Employee_Image = contents;
+
+                        EmployeeProfilePic.Add(e);
+
+                    }
+                }
+                rd.Close();
+                con.Close();
+                return EmployeeProfilePic;
             }
         }
     }

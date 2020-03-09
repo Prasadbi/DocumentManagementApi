@@ -17,6 +17,8 @@ namespace Document_Management_App.Interface
             List<AllDocument> GetALLDocumentForRequest(string empid);
             List<perticularDocument> GetPrivateDocument(string EmployeeId);
             void LogOutEmployee(string Emp_Comp_Id);
+        void UploadEmployeeProfile(Employee employee);
+        List<Employee> GetUserProfile(string Empid);
         }
     
 }
