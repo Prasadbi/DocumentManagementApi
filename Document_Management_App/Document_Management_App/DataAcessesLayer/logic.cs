@@ -190,6 +190,7 @@ namespace Document_Management_App.DataAcessesLayer
                     LoginVerification verification = new LoginVerification();
                     verification.verfication = Convert.ToString(check);
                     verification.Employee_Comp_Id = Convert.ToString(rd[0]);
+                   
                     Verification_Data = JsonConvert.SerializeObject(verification);
                     AddLoginInfo(Convert.ToString(rd[0]));
 
@@ -219,6 +220,7 @@ namespace Document_Management_App.DataAcessesLayer
                         LoginVerification verification = new LoginVerification();
                         verification.verfication = Convert.ToString(check);
                         verification.Employee_Comp_Id = Convert.ToString(reader[1]);
+                        verification.Employee_Name = Convert.ToString(reader[3]) + " " + Convert.ToString(reader[4]);
                         Verification_Data = JsonConvert.SerializeObject(verification);
                         AddLoginInfo(Convert.ToString(reader[1]));
 

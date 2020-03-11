@@ -9,5 +9,6 @@ namespace Document_Management_App.Models
     {
         public string verfication { get; set; }
         public string Employee_Comp_Id { get; set; }
+        public string Employee_Name { get; set; }
     }
 }
