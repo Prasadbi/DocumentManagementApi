@@ -116,7 +116,7 @@ namespace Document_Management_App.Controllers
             {
                 DBRecords.UpdateRequestTbl(scheduledmeetings.Request_Id);
 
-                DBRecords.SendMail(scheduledmeetings.Request_Id);
+                DBRecords.SendMailAsync(scheduledmeetings.Request_Id);
 
 
             }

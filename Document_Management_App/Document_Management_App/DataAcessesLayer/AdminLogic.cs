@@ -18,6 +18,13 @@ using Document_Management_App.DBContext;
 using Microsoft.Extensions.Options;
 using Document_Management_App.Interface;
 using System.Reflection.PortableExecutable;
+using Google.Apis.Calendar.v3.Data;
+using Google.Apis.Calendar.v3;
+using Google.Apis.Services;
+using System.Net;
+using Google.Apis.Auth.OAuth2;
+using System.Threading;
+using Google.Apis.Util.Store;
 
 namespace Document_Management_App.DataAcessesLayer
 {
@@ -386,7 +393,7 @@ namespace Document_Management_App.DataAcessesLayer
             con.Close();
         }
 
-        public void SendMail(string requestId)
+        public async void SendMailAsync(string requestId)
         {
             SqlConnection con = new SqlConnection(connectionStrings.connectionstrings);
             string name ="";
@@ -415,43 +422,115 @@ namespace Document_Management_App.DataAcessesLayer
 
             con.Close();
 
-                if(Employee_email!="" || MeetingDate!="" || MeetingTime!="" ||DocumentName!="")
+            if (Employee_email != "" || MeetingDate != "" || MeetingTime != "" || DocumentName != "")
+            {
+
+                // Refer to the .NET quickstart on how to setup the environment:
+                // https://developers.google.com/calendar/quickstart/dotnet
+                // Change the scope to CalendarService.Scope.Calendar and delete any stored
+                // credentials.
+
+                UserCredential credential;
+
+                credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                           new ClientSecrets
+                           {
+                               ClientId = "83891333767-9m2mt2r3jmcmlav4ged98t6ldehmot8d.apps.googleusercontent.com",
+                               ClientSecret = "7WuJMRt3fIF0Z67q_pM67cn-"
+
+                           },
+                           new[] { CalendarService.Scope.CalendarEventsReadonly },
+                           "amarjadhav738779@gmail.com",
+                           CancellationToken.None,
+                           new FileDataStore("Books.ListMyLibrary"));
+
+                var service = new CalendarService(new BaseClientService.Initializer()
                 {
+                    HttpClientInitializer = credential,
+                    ApplicationName = "Quickstart",
+
+                });
+
+
+                Event newEvent = new Event()
+                {
+                    Summary = "Discussion About Document Query.",
+                    Location = "Baner Biz Bay-1," + MeetingRoom,
+                    Description = "Discussion About Document Query.",
+
+                    Start = new EventDateTime()
+                    {
+                        DateTime = DateTime.Parse(MeetingDate + "T" + MeetingTime + "-07:00"),
+                        TimeZone = "Asia/Kolkata",
+                    },
+                    End = new EventDateTime()
+                    {
+                        DateTime = DateTime.Parse(MeetingDate + "T" + MeetingTime+ "-07:00"),
+                        TimeZone = "Asia/Kolkata",
+                    },
+                    Recurrence = new String[] { "RRULE:FREQ=DAILY;COUNT=1" },
+                    Attendees = new EventAttendee[] {
+                         //new EventAttendee() { Email = Employee_email },
+                         new EventAttendee() { Email = Employee_email },
+       
+                    },
+                    Reminders = new Event.RemindersData()
+                    {
+                        UseDefault = true,
+                   //     Overrides = new EventReminder[] {
+                   //new EventReminder() { Method = "email", Minutes = 24 * 60 },
+                   //new EventReminder() { Method = "sms", Minutes = 10 },
+                   // }
+                    }
+                };
+
+              //  newEvent.Visibility = "true";
+             
+                String calendarId = "primary";
+              
+                Google.Apis.Calendar.v3.EventsResource.InsertRequest request = service.Events.Insert(newEvent, calendarId);
+                Event createdEvent = request.Execute();
+             
+
+
+
+           
+
 
                 DateTime Time = DateTime.ParseExact(MeetingTime, "HH:mm",
                                       CultureInfo.InvariantCulture);
 
-                
-              
+
+
 
                 string FormatedMeetingTime = Time.ToString("hh:mm tt");
 
                 string subject = "Discussion About Document Query";
 
-                    string body = "Hi, "+name+",<br>We arrenge the meeting with you for disscuss about " + DocumentName + " " +
-                                  " document.<br> Meeting date is: " + MeetingDate + ", <br> Time is :" + FormatedMeetingTime + " and Meeting Room Is: " + MeetingRoom + "<br><i>Thank You</i>";
+                string body = "Hi, " + name + ",<br>We arrenge the meeting with you for disscuss about " + DocumentName + " " +
+                              " document.<br> Meeting date is: " + MeetingDate + ", <br> Time is :" + FormatedMeetingTime + " and Meeting Room Is: " + MeetingRoom + "<br><i>Thank You</i>";
 
 
-                    string FromMail = "amarjadhav738779@gmail.com";
-                    // string emailTo = "reciever@reckonbits.com.pk";
-                    MailMessage mail = new MailMessage();
-                      mail.IsBodyHtml = true;
+                string FromMail = "amarjadhav738779@gmail.com";
+                // string emailTo = "reciever@reckonbits.com.pk";
+                MailMessage mail = new MailMessage();
+                mail.IsBodyHtml = true;
 
                 SmtpClient SmtpServer = new SmtpClient("smtp.gmail.com", 587);
-                    mail.From = new MailAddress(FromMail);
+                mail.From = new MailAddress(FromMail);
 
-                  System.Net.NetworkCredential Credentials = new System.Net.NetworkCredential("amarjadhav738779@gmail.com", "Amar@9552065205");
+                System.Net.NetworkCredential Credentials = new System.Net.NetworkCredential("amarjadhav738779@gmail.com", "Amar@9552065205");
 
-                     mail.To.Add(Employee_email);
-                    mail.Subject = subject;
-                    mail.Body = body;     
-                    SmtpServer.Credentials =new System.Net.NetworkCredential("amarjadhav738779@gmail.com","Amar@9552065205");
-                    SmtpServer.EnableSsl = true;
-                    SmtpServer.Port = 587;
-                    SmtpServer.DeliveryMethod = SmtpDeliveryMethod.Network;
-                  // SmtpServer.UseDefaultCredentials = true;
-                    SmtpServer.Send(mail);
-                }
+                mail.To.Add(Employee_email);
+                mail.Subject = subject;
+                mail.Body = body;
+                SmtpServer.Credentials = new System.Net.NetworkCredential("amarjadhav738779@gmail.com", "Amar@9552065205");
+                SmtpServer.EnableSsl = true;
+                SmtpServer.Port = 587;
+                SmtpServer.DeliveryMethod = SmtpDeliveryMethod.Network;
+                // SmtpServer.UseDefaultCredentials = true;
+                SmtpServer.Send(mail);
+            }
         }
 
         public int AddNewEmployee(Employee employee)

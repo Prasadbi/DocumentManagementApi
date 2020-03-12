@@ -20,7 +20,7 @@ namespace Document_Management_App.Interface
             int Add_MeetingShedule(ScheduledMeeting scheduledmeeting);
             void UpdateRequestTbl(string requestId);
             void update_Scheduled_Meeting_Status(string meetinid);
-            void SendMail(string requestId);
+         void SendMailAsync(string requestId);
             int AddNewEmployee(Employee employee);
           void ShareDocument(ShareDocument sharedocument);
         List<ShareDocEmpList> getDocShareedListOfEmp(string DocId);
